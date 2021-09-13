@@ -1,0 +1,164 @@
+//Jacob Hagen
+//COMP322 - Fall 2021
+//Assignment 1 - process creation hierarchy
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int max_processes = 0;
+
+typedef struct node{
+	int parent;
+	int first_child;
+	int older_sibling;
+	int younger_sibling;
+} node; 
+
+node * pcb = NULL;
+
+void release(){
+	if(max_processes > 0){
+		max_processes = 0;
+		free(pcb);
+	}
+}
+
+void enter(){
+	int i;
+	release();
+	printf("Enter maximum number of processes: ");
+	scanf("%d", &max_processes);
+	if(max_processes <= 0){
+		printf("Invalid number of processes.\n");
+		return;
+	}
+	pcb = (node *)malloc(max_processes * sizeof(node));
+	for(i = 0; i < max_processes; i++){
+		pcb[i].parent = -1;
+		pcb[i].first_child = -1;
+		pcb[i].older_sibling = -1;
+		pcb[i].younger_sibling = -1;
+	}
+	pcb[0].parent = 0;
+}
+
+void print_table(){
+	int i;
+	printf("i\tParent\tFirst\tOlder\tYounger\n");
+	printf("---------------------------------------\n");
+	for(i=0; i < max_processes; i++){
+		if(pcb[i].parent == -1){
+			continue;
+		}
+		printf("%d\t%d\t", i, pcb[i].parent);
+		
+		if(pcb[i].first_child == -1){
+			printf("\t");
+		}else{printf("%d\t", pcb[i].first_child);
+		}
+		
+		if(pcb[i].older_sibling == -1){
+			printf("\t");
+		}else{printf("%d\t", pcb[i].older_sibling);
+		}
+		
+		if(pcb[i].younger_sibling == -1){
+			printf("\n");
+		}else{printf("%d\n", pcb[i].younger_sibling);
+		}
+	}
+}
+
+void create(){
+	if(max_processes <= 0){
+		printf("Invalid number of processes.\n");
+		return;
+	}
+	
+	int p = -1; //p - The parent process for a new process
+	int location = 0; //q - The next available index for a new process
+	int youngest_child; //t - The youngest child down the line of process siblings
+	
+	//Input the parent process
+	printf("Enter the new process' parent index: ");
+	scanf("%d", &p);
+	if(p <= -1 || p >= max_processes){
+		printf("Invalid process index.\n");
+		return;
+	}
+	if(pcb[p].parent == -1){
+		printf("Process index is not active.\n");
+		return;
+	}
+	//calculate the next available index
+	while(pcb[location].parent != -1){
+		location++;
+	}
+	//Record the porent process index at the next available index
+	pcb[location].parent = p;
+	//Add the new process reference for the parent process
+	if(pcb[p].first_child == -1){
+		pcb[p].first_child = location;
+	} else{
+		youngest_child = pcb[p].first_child;
+		//Find the youngest sibling of the children processes 
+		while(pcb[youngest_child].younger_sibling != -1){
+			youngest_child = pcb[youngest_child].younger_sibling;
+		}
+		//Set the connections between the youngest sibling and the new process
+		pcb[location].older_sibling = youngest_child;
+		pcb[youngest_child].younger_sibling = location;
+	}
+	//Print out the PCB table
+	print_table();
+}
+
+void destroy(){
+	if(max_processes <= 0){
+		printf("Invalid number of processes.\n");
+		return;
+	}
+	printf("Option 3 goes here\n");
+	print_table();
+}
+
+
+
+int main(){
+	int option = 0;
+	
+	while(option !=4){
+	option = 4;
+	printf("Process creation and destruction\n");
+	printf("--------------------------------\n");
+	printf("1) Enter parameters\n");
+	printf("2) Create a new child process\n");
+	printf("3) Destroy all decendants of a process\n");
+	printf("4) Quit program and free memory\n");
+	printf("\n");
+	printf("Enter selection: ");
+	scanf("%d", &option);
+	printf("\n");
+	switch(option){
+		case 1:
+			enter();
+			break;
+		case 2:
+			create();
+			break;
+		case 3:
+			destroy();
+			break;
+		case 4:
+			printf("Goodbye.\n");
+			release();
+			break;
+		default:
+			printf("Invalid option, try again.\n");
+		}
+		printf("\n");
+	}
+	
+
+return 0;
+}
