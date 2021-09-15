@@ -113,16 +113,46 @@ void create(){
 	print_table();
 }
 
+void destroy_recursively(int location) {  //q - The index to recursively delete from
+	if(location == -1){
+		return;
+	}
+	//Recursively destroy from the current PCB's younger_sibling
+	destroy_recursively(pcb[location].younger_sibling);
+	//Recursively destroy from the current PCB's first child
+	destroy_recursively(pcb[location].first_child);
+	//Remove all data from the current PCB
+	pcb[location].parent = -1;
+	pcb[location].first_child = -1;
+	pcb[location].older_sibling = -1;
+	pcb[location].younger_sibling = -1;
+}
+
 void destroy(){
 	if(max_processes <= 0){
 		printf("Invalid number of processes.\n");
 		return;
 	}
-	printf("Option 3 goes here\n");
+	
+	int process = -1; //p - The parent process for recursive destruction
+	
+	printf("Enter the process whose descendants are to be destroyed: ");
+	scanf("%d", &process);
+	if(process <= -1 || process >= max_processes){
+		printf("Invalid process index.\n");
+		return;
+	}
+	if(pcb[process].parent == -1){
+		printf("Process index is not active.\n");
+		return;
+	}
+	//Recursively destroy starting with the first child PCB
+	destroy_recursively(pcb[process].first_child);
+	//Remove the reference to the child PCB
+	pcb[process].first_child = -1;
+	//print out the PCB table
 	print_table();
 }
-
-
 
 int main(){
 	int option = 0;
