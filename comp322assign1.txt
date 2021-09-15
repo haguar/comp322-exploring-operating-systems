@@ -93,6 +93,10 @@ void create(){
 	//calculate the next available index
 	while(pcb[location].parent != -1){
 		location++;
+		if(location == max_processes){
+			printf("New location is out of bounds. \n");
+			return;
+		}
 	}
 	//Record the porent process index at the next available index
 	pcb[location].parent = p;
