@@ -1,0 +1,150 @@
+//Jacob Hagen
+//COMP 322 - Fall 2021
+//Assignment 2 - Batch Process Scheduling
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int total_processes = 0;
+
+typedef struct process {
+	int id;
+	int arrival;
+	int total_cpu;
+	int start;
+	int end;
+	int turnaround;
+} process;
+
+process * schedule = NULL;
+
+void release(){
+	if(total_processes > 0){
+		total_processes = 0;
+		free(schedule);
+	}
+}
+
+void enter(){
+	int i;
+	release();
+	printf("Enter total number of processes: ");
+	scanf("%d", &total_processes);
+	if(total_processes <= 0){
+		printf("Invalid number of processes.\n");
+		return;
+	}
+	schedule = (process *)malloc(total_processes * sizeof(process));
+	for(i = 0; i < total_processes; i++){
+		int arrival = -1;
+		int total_cpu = -1;
+		printf("Enter arrival time for process %d: ", i);
+		scanf("%d", &arrival);
+		if(arrival < 0){
+			printf("Invalid arrival time.\n");
+			release();
+			return;
+		}
+		printf("Enter total CPU time for process %d: ", i);
+		scanf("%d", &total_cpu);
+		if(total_cpu < 0){
+			printf("Invalid total CPU time.\n");
+			release();
+			return;
+		}
+		schedule[i].id = i;
+		schedule[i].arrival = arrival;
+		schedule[i].total_cpu = total_cpu;
+		schedule[i].start = -1;
+		schedule[i].end = -1;
+		schedule[i].turnaround = -1;
+	}
+}
+
+void print_table(){
+	int i;
+	printf("ID\tArrival\tTotal\tStart\tEnd\tTurnaround\n");
+	printf("--------------------------------------------------\n");
+	for(i = 0; i < total_processes; i++){
+		printf("%d\t%d\t", schedule[i].id, schedule[i].arrival);
+		printf("%d\t%d\t", schedule[i].total_cpu, schedule[i].start);
+		printf("%d\t%d\n", schedule[i].end, schedule[i].turnaround);
+	}
+}
+
+void sort_table(int category, int order){
+	//Categories:
+	//0 - Sort by ID
+	//1 - Sort by Arrival
+	//Orders:
+	//0 - Shortest first
+	//1 - Longest first
+	int i, j;
+	for(i = 0; i < total_processes - 1; i++){
+		for(j = i + 1; j < total_processes; j++){
+			if((category == 0 && order == 0 && schedule[i].id > schedule[j].id) || 
+					(category == 0 && order == 1 && schedule[i].id < schedule[j].id) || 
+					(category == 1 && order == 0 && schedule[i].arrival > schedule[j].arrival) ||
+					(category == 1 && order == 1 && schedule[i].arrival < schedule[j].arrival)) {
+				process temporary = schedule[i];
+				schedule[i] = schedule[j];
+				schedule[j] = temporary;
+			}
+		}
+	}
+}
+
+void schedule_fifo(){
+	if(total_processes <= 0){
+		printf("Invalid number of processes.\n");
+		return;
+	}
+	
+	sort_table(0, 0);
+	print_table();
+}
+
+void schedule_sjf(){
+	if(total_processes <= 0){
+		printf("Invalid number of processes.\n");
+		return;
+	}
+	
+	sort_table(0, 1);
+	print_table();
+}
+
+int main(){
+	int option = 0;
+	while(option != 4){
+		option = 4;
+		printf("Batch Scheduling\n");
+		printf("----------------\n");
+		printf("1) Enter parameters\n");
+		printf("2)Schedule process with FIFO algorithm\n");
+		printf("3)Schedule process with SJF algorithm\n");
+		printf("4)Quit program and free memory\n");
+		printf("\n");
+		printf("Enter selection: ");
+		scanf("%d", &option);
+		switch (option){
+			case 1:
+				enter();
+				break;
+			case 2:
+				schedule_fifo();
+				break;
+			case 3:
+				schedule_sjf();
+				break;
+			case 4:
+				printf("Goodbye. \n");
+				release();
+				break;
+			default:
+				printf("Invalid option, try again.");
+		}
+		printf("\n");
+	}
+	return 0;
+}
