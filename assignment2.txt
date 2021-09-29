@@ -94,23 +94,52 @@ void sort_table(int category, int order){
 	}
 }
 
-void schedule_fifo(){
-	if(total_processes <= 0){
-		printf("Invalid number of processes.\n");
-		return;
+void schedule_table (int algorithm){
+	//Algorithm
+	//0 First in first out FIFO
+	//1 Shortest Job First (SJF)
+	int i, j;
+	if( total_processes <= 0){
+		printf("Inavlid number of processes. \n");
+	return;
 	}
-	
-	sort_table(0, 0);
-	print_table();
-}
-
-void schedule_sjf(){
-	if(total_processes <= 0){
-		printf("Invalid number of processes.\n");
-		return;
+	// First
+	sort_table(1,0);
+	//
+	for( i=0; i< total_processes; i++){
+	//Determine the process start time
+	if(i==0){
+		schedule[0].start = schedule[0].arrival;
+	} else{
+	//check to see if there is a scheduling conflict
+			if(schedule[i].arrival >= schedule[i-1].end){
+				schedule[i].start = schedule[i].arrival;
+			}else{
+				//Resolve the conflict based on our algorithm
+					if(algorithm == 1){
+						//iterate through all of the conflicting processes to find the process with the lowest toal CPU
+						for( j= i + 1; j < total_processes; j++){
+							//if there are no more conflcits, exit out of the loop
+							if(schedule[j].arrival >= schedule[i-1].end){
+								break;
+							}
+							//Check to see if "i" and "j" need to be swap
+							if(schedule[i].total_cpu > schedule[j].total_cpu) {
+								process temp = schedule[i];
+								schedule[i] = schedule[j];
+								schedule[j] = temp;
+							}
+						}
+					}
+					//In either algorithm set the current start to the previous end time
+					schedule[i].start = schedule[i-1].end;
+			}
+		}
+	//Determine process end time and turnaround time
+	schedule[i].end = schedule[i].start + schedule[i].total_cpu;
+	schedule[i].turnaround= schedule[i].end - schedule[i].arrival;
 	}
-	
-	sort_table(0, 1);
+	//Finally we print table
 	print_table();
 }
 
@@ -132,10 +161,10 @@ int main(){
 				enter();
 				break;
 			case 2:
-				schedule_fifo();
+				schedule_table(0); //fifo
 				break;
 			case 3:
-				schedule_sjf();
+				schedule_table(1); //sfj
 				break;
 			case 4:
 				printf("Goodbye. \n");
