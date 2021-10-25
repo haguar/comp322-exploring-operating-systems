@@ -66,7 +66,7 @@ void enter(){
 	printf("***\n");
 	for(j = 0; j < total_resources; j++){
 		int total_units = -1;
-		printf("Enter number of total units for resource %d", j);
+		printf("Enter number of total units for resource %d:", j);
 		scanf("%d", &total_units);
 		if(total_units < 0){
 			printf("Invalid number of total units.\n");
@@ -193,7 +193,67 @@ void print_matrix(int matrix_type){
 		
 	}
 }
+
+int check_arrays(int * first_array, int * second_array){
+	//Return 1 if all of first_array values <= all of second_array values
+	//return 0 if any of first_array values >any of second_array values
+	int j;
+	for(j = 0; j < total_resources; j++){
+		if(first_array[j] > second_array[j]){
+			return 0;
+		}
+	}
+	return 1;
+}
+
 void bankers_algorithm(){
+	int i, j, completed = 0, * sequenced, * current_units;
+	if(total_processes <= 0){
+		printf("Invalid number of processes.\n");
+		return;
+	}
+	sequenced = (int *)malloc(total_processes * sizeof(int));
+	for(i = 0; i < total_processes; i++){
+		sequenced[i] = 0;
+	}
+	current_units = (int *)malloc(total_resources * sizeof(int));
+	for(j = 0; j < total_resources; j++){
+		current_units[j] = resources[j].available_units;
+	}
+	//Run the Bankers's algorithm using a circular for loop
+	for (i = 0; completed < total_processes; i = (i + 1) % total_processes){
+		//If current process is sequenced, then skip the iteration
+		if(sequenced[i] == 1){
+			continue;
+		}
+		//Print the output per line
+		printf("Checking if p%d's needs [", i);
+		for(j = 0; j < total_resources; j++){
+			printf(" %d", processes[i].needed[j]);
+		}
+		printf("] are <= to available units [");
+		for(j = 0; j < total_resources; j++){
+			printf(" %d", current_units[j]);
+		}
+		printf("] - ");
+		//Check the arrays to see if the process is skipped or sequenced
+		if (check_arrays(processes[i].needed, current_units) == 1){
+			//Increase the current available units 
+			for(j = 0; j < total_resources; j++){
+				current_units[j] += processes[i].allocated[j];
+			}
+			//signify that the current process is complete
+			sequenced[i] = 1;
+			completed++;
+			printf("p%d safely sequenced", i);
+		}else {
+			printf("skipping");
+		}
+		printf("\n");
+	}
+	
+	free(sequenced);
+	free(current_units);
 }
 
 int main(){
